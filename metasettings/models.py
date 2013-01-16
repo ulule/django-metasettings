@@ -3,21 +3,20 @@ import math
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 from django.db import models
 from django.utils.functional import memoize
 
-from metasettings.settings import CURRENCY_COOKIE_NAME, METASETTINGS_DEFAULT_CURRENCY
 from metasettings.choices import CURRENCY_BY_COUNTRIES, CURRENCY_LABELS
+from metasettings import settings
 
 
 def get_currency_from_request(request):
-    currency_code = request.COOKIES.get(getattr(settings, 'CURRENCY_COOKIE_NAME', CURRENCY_COOKIE_NAME), None)
+    currency_code = request.COOKIES.get(settings.METASETTINGS_CURRENCY_COOKIE_NAME, None)
 
     if not currency_code:
         currency_code = get_currency_from_ip_address(request.META['REMOTE_ADDR'])
 
-    return currency_code or getattr(settings, 'METASETTINGS_DEFAULT_CURRENCY', METASETTINGS_DEFAULT_CURRENCY)
+    return currency_code or settings.METASETTINGS_DEFAULT_CURRENCY
 
 
 def get_currency_from_ip_address(ip_address):

@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseRedirect
-from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 from metasettings.choices import CURRENCY_LABELS, CURRENCY_CHOICES
 from metasettings import signals
-from metasettings.settings import CURRENCY_COOKIE_NAME
 from metasettings.util import set_cookie, chunks
+from metasettings.settings import METASETTINGS_CURRENCY_COOKIE_NAME
 
 
 @require_POST
@@ -33,7 +33,7 @@ def dashboard(request, status=None):
                 request=request
             )
 
-            set_cookie(response, getattr(settings, 'CURRENCY_COOKIE_NAME', CURRENCY_COOKIE_NAME), currency_code, cookie_domain=cookie_domain)
+            set_cookie(response, METASETTINGS_CURRENCY_COOKIE_NAME, currency_code, cookie_domain=cookie_domain)
 
         if 'language_code' in request.POST and request.POST.get('language_code') in dict(settings.LANGUAGES):
 
