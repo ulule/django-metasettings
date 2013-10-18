@@ -74,8 +74,8 @@ To retrieve the currency with a client IP Address::
 
     get_currency_from_ip_address('78.192.244.8') # EUR
 
-to detect the currency with an IP we are using `GeoIP`_ to retrieve the country
-and then capture the correct currency.
+We are using `GeoIP`_ which gives you the ability to retrieve the country and
+then we are linking the country to an existing currency.
 
 So don't forget to import a fresh GeoIP database and be sure to have **GEOIP_PATH**.
 
