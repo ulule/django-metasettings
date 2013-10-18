@@ -77,7 +77,8 @@ To retrieve the currency with a client IP Address::
 We are using `GeoIP`_ which gives you the ability to retrieve the country and
 then we are linking the country to an existing currency.
 
-So don't forget to import a fresh GeoIP database and be sure to have **GEOIP_PATH**.
+So don't forget to import a fresh GeoIP database and be sure to have **GEOIP_PATH**
+in your settings.
 
 We recommend to use `django-geoip-utils <https://github.com/Gidsy/django-geoip-utils>`_
 which provides some helpers to manipulate GeoIP API.
