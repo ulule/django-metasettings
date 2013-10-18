@@ -12,12 +12,12 @@ from . import settings
 
 
 def get_currency_from_request(request):
-    currency_code = request.COOKIES.get(settings.METASETTINGS_CURRENCY_COOKIE_NAME, None)
+    currency_code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
 
     if not currency_code:
         currency_code = get_currency_from_ip_address(request.META['REMOTE_ADDR'])
 
-    return currency_code or settings.METASETTINGS_DEFAULT_CURRENCY
+    return currency_code or settings.DEFAULT_CURRENCY
 
 
 def get_currency_from_ip_address(ip_address):

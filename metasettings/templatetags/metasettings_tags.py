@@ -1,18 +1,21 @@
 import re
 
 from django import template
+from django.template import TemplateSyntaxError
 
 from metasettings.models import (get_currency_from_request as get_currency,
                                  get_language_from_request as get_language,
-                                 convert_amount)
+                                 convert_amount as _convert_amount)
 
 
 register = template.Library()
 
+kwarg_re = re.compile(r"(?:(\w+)=)?(.+)")
+
 
 class Node(template.Node):
     def __init__(self, request, func, var_name):
-        self.request = request
+        self.request = template.Variable(request)
         self.var_name = var_name
         self.func = func
 
@@ -31,6 +34,7 @@ class Node(template.Node):
         return result
 
 
+@register.tag
 def get_currency_from_request(parser, token):
     try:
         tag_name, arg = token.contents.split(None, 1)
@@ -47,6 +51,7 @@ def get_currency_from_request(parser, token):
     return Node(request, get_currency, var_name)
 
 
+@register.tag
 def get_language_from_request(parser, token):
     try:
         tag_name, arg = token.contents.split(None, 1)
@@ -63,13 +68,73 @@ def get_language_from_request(parser, token):
     return Node(request, get_language, var_name)
 
 
-@register.simple_tag(takes_context=True)
-def my_tag(context, from_currency, to_currency,
-           amount, ceil, asvar=None, *args, **kwargs):
-    output = convert_amount(from_currency, to_currency, amount, ceil=ceil)
+class ConvertAmountNode(template.Node):
+    @classmethod
+    def parse_params(cls, parser, bits):
+        args, kwargs = [], {}
+        for bit in bits:
+            name, value = kwarg_re.match(bit).groups()
+            if name:
+                kwargs[name] = parser.compile_filter(value)
+            else:
+                args.append(parser.compile_filter(value))
+        return args, kwargs
 
-    if asvar:
-        context[asvar] = output
-        return ''
+    @classmethod
+    def handle_token(cls, parser, token):
+        bits = token.split_contents()
+        name = bits[0]
 
-    return output
+        if len(bits) < 4:
+            raise TemplateSyntaxError("'%s' takes at least 3 argument" % name)
+
+        asvar = None
+
+        if 'as' in bits:
+            pivot = bits.index('as')
+
+            try:
+                asvar = bits[pivot + 1]
+            except IndexError:
+                raise TemplateSyntaxError("'%s' arguments must include "
+                                          "a variable name after 'as'" % name)
+            del bits[pivot:pivot + 2]
+
+        cls_args, cls_kwargs = cls.parse_params(parser, bits[1:])
+
+        cls_kwargs['asvar'] = asvar
+        cls_kwargs['ceil'] = cls_kwargs.get('ceil', False)
+
+        return cls(*cls_args, **cls_kwargs)
+
+    def __init__(self, from_currency, to_currency, amount, ceil=False, asvar=None):
+        self.from_currency = from_currency
+        self.to_currency = to_currency
+        self.amount = amount
+        self.ceil = ceil
+        self.asvar = asvar
+
+    def render(self, context):
+        from_currency = self.from_currency.resolve(context)
+
+        to_currency = self.to_currency.resolve(context)
+
+        amount = self.amount.resolve(context)
+
+        ceil = self.ceil and self.ceil.resolve(context) or self.ceil
+
+        amount = _convert_amount(from_currency,
+                                 to_currency,
+                                 amount,
+                                 ceil=ceil)
+
+        if self.asvar:
+            context[self.asvar] = amount
+            return ''
+
+        return amount
+
+
+@register.tag
+def convert_amount(parser, token):
+    return ConvertAmountNode.handle_token(parser, token)

@@ -4,10 +4,9 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
-from .choices import CURRENCY_LABELS, CURRENCY_CHOICES
 from . import signals
 from .util import set_cookie, chunks
-from .settings import METASETTINGS_CURRENCY_COOKIE_NAME
+from .settings import CURRENCY_COOKIE_NAME, CURRENCY_LABELS, CURRENCY_CHOICES
 
 
 @require_POST
@@ -15,7 +14,7 @@ from .settings import METASETTINGS_CURRENCY_COOKIE_NAME
 def dashboard(request, status=None):
     currency_choices = dict(CURRENCY_CHOICES)
 
-    if 'submit' in request.POST:
+    if 'submit' in request.POST and 'redirect_url' in request.POST:
         cookie_domain = settings.SESSION_COOKIE_DOMAIN
 
         if cookie_domain and cookie_domain.startswith('.'):
@@ -33,7 +32,7 @@ def dashboard(request, status=None):
                 request=request
             )
 
-            set_cookie(response, METASETTINGS_CURRENCY_COOKIE_NAME, currency_code, cookie_domain=cookie_domain)
+            set_cookie(response, CURRENCY_COOKIE_NAME, currency_code, cookie_domain=cookie_domain)
 
         if 'language_code' in request.POST and request.POST.get('language_code') in dict(settings.LANGUAGES):
 

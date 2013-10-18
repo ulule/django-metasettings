@@ -4,8 +4,12 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from django.test import TestCase
+from django.test.client import Client
+from django.template import Context, Template
 from django.core.management import call_command
 from django.conf import settings
+from django.test.client import RequestFactory
+from django.core.urlresolvers import reverse
 
 from metasettings.models import (CurrencyRate, convert_amount,
                                  CurrencyRateManager,
@@ -14,6 +18,9 @@ from metasettings.settings import CURRENCY_CHOICES
 
 
 class MetasettingsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
     def test_sync_rates(self):
         call_command('sync_rates', app_id=settings.OPENEXCHANGERATES_APP_ID)
 
@@ -98,5 +105,56 @@ class MetasettingsTests(TestCase):
         self.assertEqual(get_currency_from_ip_address('203.152.216.75'), 'JPY')  # Japan
         self.assertEqual(get_currency_from_ip_address('187.32.127.161'), 'BRL')  # Brasil
 
-    def test_templatetags(self):
-        pass
+    def test_convert_amount_templatetags(self):
+        with patch.object(CurrencyRateManager, 'get_currency_rates') as get_currency_rates:
+            get_currency_rates.return_value = {
+                'EUR': CurrencyRate(rate=0.730862),
+                'USD': CurrencyRate(rate=1)
+            }
+
+            t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 ceil=1 %}")
+            result = t.render(Context())
+
+            self.assertEqual(result, u'21')
+
+            t = Template("{% load metasettings_tags %}{% convert_amount from_currency='EUR' to_currency='USD' amount=15 %}")
+            result = t.render(Context())
+
+            self.assertEqual(result, u'20.5237103585')
+
+            t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 ceil=1 as amount %}{{ amount }}")
+            result = t.render(Context())
+
+            self.assertEqual(result, u'21')
+
+            t = Template("{% load metasettings_tags %}{% get_currency_from_request request as currency %}{{ currency }}")
+            result = t.render(Context({
+                'request': self.factory.get('/')
+            }))
+
+            self.assertEqual(result, u'EUR')
+
+            t = Template("{% load metasettings_tags %}{% get_language_from_request request as lang %}{{ lang }}")
+            result = t.render(Context({
+                'request': self.factory.get('/')
+            }))
+
+            self.assertEqual(result, settings.LANGUAGE_CODE)
+
+    def test_dashboard_view(self):
+        client = Client()
+        response = client.post(reverse('metasettings_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'metasettings/dashboard.html')
+
+    def test_dashboard_complete(self):
+        client = Client()
+        response = client.post(reverse('metasettings_dashboard'), data={
+            'submit': 1,
+            'language_code': 'en',
+            'currency_code': 'EUR',
+            'redirect_url': reverse('root')
+        })
+
+        self.assertEqual(response.status_code, 302)

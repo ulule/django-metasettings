@@ -26,6 +26,8 @@ INSTALLED_APPS = [
 
 SECRET_KEY = 'blabla'
 
+ROOT_URLCONF = 'metasettings.tests.urls'
+
 OPENEXCHANGERATES_APP_ID = os.getenv('OPENEXCHANGERATES_APP_ID')
 
 GEOIP_PATH = os.path.join(os.path.dirname(__file__), 'data', 'GeoIP.dat')
