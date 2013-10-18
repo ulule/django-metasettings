@@ -26,12 +26,11 @@ and a currency you will have to install urls from metasettings like so ::
 
     # urls.py
 
-    from django.conf.urls.defaults import patterns, url, include
+    from django.conf.urls.defaults import patterns, include
 
     urlpatterns = patterns(
         '',
-        (r'^',
-            include('metasettings.urls'))
+        (r'^', include('metasettings.urls'))
     )
 
 You can add your proper stylesheet to this dashboard view and have this kind
@@ -75,8 +74,12 @@ To retrieve the currency with a client IP Address::
 
     get_currency_from_ip_address('78.192.244.8') # EUR
 
-to detect the currency with an IP we are using `geoip`_ to retrieve the country
+to detect the currency with an IP we are using `GeoIP`_ to retrieve the country
 and then capture the correct currency.
 
+So don't forget to import a fresh GeoIP database and be sure to have **GEOIP_PATH**.
 
-.. _geoip: https://docs.djangoproject.com/en/dev/ref/contrib/gis/geoip/
+We recommand to use `django-geoip-utils <https://github.com/Gidsy/django-geoip-utils>`_
+which provides some helpers to manipulate GeoIP API.
+
+.. _GeoIP: https://docs.djangoproject.com/en/dev/ref/contrib/gis/geoip/
