@@ -1,6 +1,7 @@
 from django.conf.urls.defaults import patterns, url
 
-from metasettings.views import dashboard
+from .views import dashboard
+
 
 urlpatterns = patterns(
     '',

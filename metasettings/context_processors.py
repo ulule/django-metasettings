@@ -1,4 +1,4 @@
-from metasettings.choices import CURRENCY_CHOICES, CURRENCY_LABELS
+from .choices import CURRENCY_CHOICES, CURRENCY_LABELS
 
 
 def base(request):

@@ -4,10 +4,10 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
-from metasettings.choices import CURRENCY_LABELS, CURRENCY_CHOICES
-from metasettings import signals
-from metasettings.util import set_cookie, chunks
-from metasettings.settings import METASETTINGS_CURRENCY_COOKIE_NAME
+from .choices import CURRENCY_LABELS, CURRENCY_CHOICES
+from . import signals
+from .util import set_cookie, chunks
+from .settings import METASETTINGS_CURRENCY_COOKIE_NAME
 
 
 @require_POST

@@ -2,9 +2,6 @@ import re
 
 from django import template
 
-from classytags.core import Tag, Options
-from classytags.arguments import Argument
-
 from metasettings.models import (get_currency_from_request as get_currency,
                                  get_language_from_request as get_language,
                                  convert_amount)
@@ -66,25 +63,13 @@ def get_language_from_request(parser, token):
     return Node(request, get_language, var_name)
 
 
-class ConvertAmount(Tag):
-    name = 'convert_amount'
-    options = Options(
-        Argument('from_currency'),
-        Argument('to_currency'),
-        Argument('amount'),
-        Argument('ceil', required=False, resolve=False, default=False),
-        'as',
-        Argument('varname', required=False, resolve=False)
-    )
+@register.simple_tag(takes_context=True)
+def my_tag(context, from_currency, to_currency,
+           amount, ceil, asvar=None, *args, **kwargs):
+    output = convert_amount(from_currency, to_currency, amount, ceil=ceil)
 
-    def render_tag(self, context, from_currency, to_currency, amount, ceil, varname=None):
+    if asvar:
+        context[asvar] = output
+        return ''
 
-        output = convert_amount(from_currency, to_currency, amount, ceil=ceil)
-
-        if varname:
-            context[varname] = output
-            return ''
-
-        return output
-
-register.tag(ConvertAmount)
+    return output
