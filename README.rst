@@ -79,7 +79,7 @@ and then capture the correct currency.
 
 So don't forget to import a fresh GeoIP database and be sure to have **GEOIP_PATH**.
 
-We recommand to use `django-geoip-utils <https://github.com/Gidsy/django-geoip-utils>`_
+We recommend to use `django-geoip-utils <https://github.com/Gidsy/django-geoip-utils>`_
 which provides some helpers to manipulate GeoIP API.
 
 .. _GeoIP: https://docs.djangoproject.com/en/dev/ref/contrib/gis/geoip/
