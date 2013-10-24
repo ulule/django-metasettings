@@ -19,7 +19,6 @@ setup(
     url='http://github.com/thoas/django-metasettings',
     packages=find_packages(),
     install_requires=[
-        'python-leetchi',
     ],
     zip_safe=False,
     include_package_data=True,
@@ -32,4 +31,3 @@ setup(
         'Topic :: Utilities',
     ]
 )
-
