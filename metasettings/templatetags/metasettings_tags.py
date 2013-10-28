@@ -103,7 +103,6 @@ class ConvertAmountNode(template.Node):
         cls_args, cls_kwargs = cls.parse_params(parser, bits[1:])
 
         cls_kwargs['asvar'] = asvar
-        cls_kwargs['ceil'] = cls_kwargs.get('ceil', False)
 
         return cls(*cls_args, **cls_kwargs)
 

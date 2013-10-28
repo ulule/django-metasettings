@@ -112,6 +112,11 @@ class MetasettingsTests(TestCase):
                 'USD': CurrencyRate(rate=1)
             }
 
+            t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 1 %}")
+            result = t.render(Context())
+
+            self.assertEqual(result, u'21')
+
             t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 ceil=1 %}")
             result = t.render(Context())
 
