@@ -71,12 +71,17 @@ class CurrencyRateManager(models.Manager):
 
         return rates
 
+    @cached_property
+    def default_rates(self):
+        return dict((currency_rate.currency, currency_rate)
+                    for currency_rate in self.filter(month__isnull=True, year__isnull=True))
+
     def get_currency_rates(self, year=None, month=None):
         if year and month:
             if year in self.rates and month in self.rates[year]:
                 return self.rates[year][month]
 
-        return self.rates
+        return self.default_rates
 
 
 class CurrencyRate(models.Model):
