@@ -26,7 +26,7 @@ and a currency you will have to install urls from metasettings like so ::
 
     # urls.py
 
-    from django.conf.urls.defaults import patterns, include
+    from django.conf.urls import patterns, include
 
     urlpatterns = patterns(
         '',
@@ -36,7 +36,7 @@ and a currency you will have to install urls from metasettings like so ::
 You can add your proper stylesheet to this dashboard view and have this kind
 of result:
 
-.. image:: http://f.cl.ly/items/2v3g0q0n09000W0h112f/Screen%20Shot%202013-10-18%20at%2015.52.34.png
+.. image:: http://cl.ly/image/2j0I3V1B0G1w/metasettings.png
 
 
 Usage
