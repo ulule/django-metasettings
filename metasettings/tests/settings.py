@@ -1,4 +1,5 @@
 import os
+import django
 
 DATABASES = {
     'default': {
@@ -24,9 +25,14 @@ INSTALLED_APPS = [
     'metasettings.tests',
 ]
 
+LANGUAGE_CODE = 'en'
+
 SECRET_KEY = 'blabla'
 
 ROOT_URLCONF = 'metasettings.tests.urls'
+
+if django.VERSION <= (1, 6):
+    TEST_RUNNER = 'discover_runner.DiscoverRunner'
 
 OPENEXCHANGERATES_APP_ID = os.getenv('OPENEXCHANGERATES_APP_ID')
 

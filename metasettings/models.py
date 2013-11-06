@@ -24,7 +24,7 @@ def get_currency_from_ip_address(ip_address):
     currency_code = None
 
     try:
-        from django.contrib.gis.utils import GeoIP
+        from .compat import GeoIP
     except ImportError, e:
         logging.info(e)
     else:
