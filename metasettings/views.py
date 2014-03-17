@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
@@ -20,36 +20,44 @@ def dashboard(request, status=None):
         if cookie_domain and cookie_domain.startswith('.'):
             cookie_domain = cookie_domain % {'host': '.'.join(request.get_host().split('.')[-2:])}
 
-        response = HttpResponseRedirect(request.POST.get('redirect_url'))
+        parameters = request.POST
 
-        if 'currency_code' in request.POST and request.POST.get('currency_code') in currency_choices:
+        response = HttpResponseRedirect(parameters.get('redirect_url'))
 
-            currency_code = request.POST.get('currency_code')
+        keys = {
+            'currency_code': {
+                'choices': currency_choices,
+                'cookie_name': CURRENCY_COOKIE_NAME,
+                'signal': signals.currency_was_set
+            },
+            'language_code': {
+                'choices': dict(settings.LANGUAGES),
+                'cookie_name': settings.LANGUAGE_COOKIE_NAME,
+                'signal': signals.language_was_set
+            }
+        }
 
-            signals.currency_was_set.send(
-                sender=request.__class__,
-                currency_code=currency_code,
-                request=request
-            )
+        for key, value in keys.items():
+            if key in parameters and parameters.get(key) in value['choices']:
+                code = parameters.get(key)
 
-            set_cookie(response, CURRENCY_COOKIE_NAME, currency_code, cookie_domain=cookie_domain)
+                kwargs = {
+                    'sender': request.__class__,
+                    key: code,
+                    'request': request,
+                    'parameters': parameters
+                }
 
-        if 'language_code' in request.POST and request.POST.get('language_code') in dict(settings.LANGUAGES):
+                results = value['signal'].send(**kwargs)
 
-            language_code = request.POST.get('language_code')
+                for func, result in results:
+                    if result and isinstance(result, HttpResponse):
+                        response = result
+                        break
 
-            signals.language_was_set.send(
-                sender=request.__class__,
-                language_code=language_code,
-                request=request
-            )
+                set_cookie(response, value['cookie_name'], code, cookie_domain=cookie_domain)
 
-            if hasattr(request, 'session'):
-                request.session['django_language'] = language_code
-
-            set_cookie(response, settings.LANGUAGE_COOKIE_NAME, language_code, cookie_domain=cookie_domain)
-
-            return response
+        return response
 
     return render(request, 'metasettings/dashboard.html', {
         'currency_labels': dict(CURRENCY_LABELS),
