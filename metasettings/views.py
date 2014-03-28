@@ -37,6 +37,8 @@ def dashboard(request, status=None):
             }
         }
 
+        cookies = {}
+
         for key, value in keys.items():
             if key in parameters and parameters.get(key) in value['choices']:
                 code = parameters.get(key)
@@ -55,7 +57,10 @@ def dashboard(request, status=None):
                         response = result
                         break
 
-                set_cookie(response, value['cookie_name'], code, cookie_domain=cookie_domain)
+                cookies[value['cookie_name']] = code
+
+        for k, v in cookies.items():
+            set_cookie(response, k, v, cookie_domain=cookie_domain)
 
         return response
 
