@@ -59,6 +59,8 @@ def convert_amount(from_currency, to_currency, amount, ceil=False,
 
 
 class CurrencyRateManager(models.Manager):
+    currency_choices = dict(settings.CURRENCY_CHOICES)
+
     @cached_property
     def rates(self):
         rates = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
@@ -82,6 +84,47 @@ class CurrencyRateManager(models.Manager):
                 return self.rates[year][month]
 
         return self.default_rates
+
+    def update_or_create(self, currency, rate, date=None):
+        """Update a CurrencyRate object referenced by `currency` (and optionally
+        `date`). If the object is not found, a new one will be created.
+
+        Returns a tuple with the object and a `created` flag. If the object
+        was neither updated nor created then None is returned.
+
+        """
+        if currency not in self.currency_choices:
+            return (None, False)
+
+        try:
+            filters = {'currency': currency}
+            if date:
+                filters.update({
+                    'year': date.year,
+                    'month': date.month
+                })
+
+            existing_rate = CurrencyRate.objects.get(**filters)
+
+            existing_rate.rate = str(existing_rate.rate)
+            rate = str("%.2f" % (rate))
+
+            if existing_rate.rate == rate:
+                return (None, False)
+            else:
+                existing_rate.rate = rate
+                existing_rate.save()
+                return (existing_rate, False)
+
+        except CurrencyRate.DoesNotExist:
+            currency_rate = CurrencyRate()
+            currency_rate.rate = str(rate)
+
+            for k, v in filters.items():
+                setattr(currency_rate, k, v)
+
+            currency_rate.save()
+            return (currency_rate, True)
 
 
 class CurrencyRate(models.Model):

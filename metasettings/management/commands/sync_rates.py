@@ -86,43 +86,13 @@ class Command(BaseCommand):
         if response.status_code == 200:
             result = json.loads(response.content)
 
-            currency_choices = dict(CURRENCY_CHOICES)
-
             for currency, rate in result['rates'].iteritems():
-                if not currency in currency_choices:
-                    continue
-
-                try:
-                    filters = {
-                        'currency': currency
-                    }
-
-                    if current_date:
-                        filters.update({
-                            'year': current_date.year,
-                            'month': current_date.month
-                        })
-
-                    existing_rate = CurrencyRate.objects.get(**filters)
-
-                    existing_rate.rate = str(existing_rate.rate)
-                    rate = str("%.2f" % (rate))
-
-                    if existing_rate.rate == rate:
-                        continue
+                currency_rate, created = CurrencyRate.objects.update_or_create(
+                    currency, rate, current_date
+                )
+                if currency_rate:
+                    if created:
+                        msg = 'Create currency %s with %s\n'
                     else:
-                        existing_rate.rate = rate
-                        existing_rate.save()
-
-                        sys.stdout.write('Syncing currency %s with %s\n' % (currency, rate))
-
-                except CurrencyRate.DoesNotExist:
-                    currency_rate = CurrencyRate()
-                    currency_rate.rate = str(rate)
-
-                    for k, v in filters.items():
-                        setattr(currency_rate, k, v)
-
-                    currency_rate.save()
-
-                    sys.stdout.write('Create currency %s with %s\n' % (currency, rate))
+                        msg = 'Syncing currency %s with %s\n'
+                    sys.stdout.write(msg % (currency, rate))
