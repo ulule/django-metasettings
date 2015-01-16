@@ -53,6 +53,8 @@ To import currency rates in a date range, run ::
 
 It will import for each months between the two dates the currency rates.
 
+The OpenExchangeRates app id can also be stored in the
+`OPENEXCHANGERATES_APP_ID` Django setting.
 
 If you can to convert an amount from on currency to another ::
 

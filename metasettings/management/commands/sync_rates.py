@@ -4,6 +4,7 @@ import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from optparse import make_option
@@ -38,7 +39,7 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        self.app_id = options.get('app_id', None)
+        self.app_id = options.get('app_id', getattr(settings, 'OPENEXCHANGERATES_APP_ID'))
 
         if not self.app_id:
             raise CommandError('The openexchangerates APP ID is required')
