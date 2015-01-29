@@ -59,7 +59,7 @@ def convert_amount(from_currency, to_currency, amount, ceil=False,
 
 
 class CurrencyRateManager(models.Manager):
-    currency_choices = dict(settings.CURRENCY_CHOICES)
+    CURRENCY_CHOICES = dict(settings.CURRENCY_CHOICES)
 
     @cached_property
     def rates(self):
@@ -93,7 +93,7 @@ class CurrencyRateManager(models.Manager):
         was neither updated nor created then None is returned.
 
         """
-        if currency not in self.currency_choices:
+        if currency not in self.CURRENCY_CHOICES:
             return (None, False)
 
         try:
@@ -109,12 +109,10 @@ class CurrencyRateManager(models.Manager):
             existing_rate.rate = str(existing_rate.rate)
             rate = str("%.2f" % (rate))
 
-            if existing_rate.rate == rate:
-                return (None, False)
-            else:
+            if existing_rate.rate != rate:
                 existing_rate.rate = rate
                 existing_rate.save()
-                return (existing_rate, False)
+            return (existing_rate, False)
 
         except CurrencyRate.DoesNotExist:
             currency_rate = CurrencyRate()

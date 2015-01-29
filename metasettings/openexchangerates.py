@@ -16,8 +16,7 @@ def rate_request(app_id, date=None):
     response = requests.get(url, params={'app_id': app_id})
     if response.status_code == 200:
         return json.loads(response.content)
-    else:
-        LOGGER.warning("Request to %s returned %s", url, response.status_code)
+    LOGGER.warning("Request to %s returned %s", url, response.status_code)
 
 
 def sync_rates(app_id, date=None):
