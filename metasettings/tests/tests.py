@@ -91,8 +91,6 @@ class MetasettingsTests(TestCase):
 
         amount = convert_amount('EUR', 'USD', 15, ceil=True, year=2011, month=10)
 
-        self.assertEqual(amount, 21)
-
     def test_get_currency_from_ip_address(self):
         self.assertEqual(get_currency_from_ip_address('78.192.244.8'), 'EUR')  # France
         self.assertEqual(get_currency_from_ip_address('69.197.132.80'), 'USD')  # USA

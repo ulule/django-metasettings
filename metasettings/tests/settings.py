@@ -37,3 +37,12 @@ if django.VERSION <= (1, 6):
 OPENEXCHANGERATES_APP_ID = os.getenv('OPENEXCHANGERATES_APP_ID')
 
 GEOIP_PATH = os.path.join(os.path.dirname(__file__), 'data', 'GeoIP.dat')
+
+MIDDLEWARE_CLASSES = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
