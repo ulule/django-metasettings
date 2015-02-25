@@ -11,11 +11,25 @@ from django.db import models
 from . import settings
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ips = x_forwarded_for.split(',')
+
+        for ip in ips:
+            if 'unknown' not in ip:
+                return ip.strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+
+    return ip
+
+
 def get_currency_from_request(request):
     currency_code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
 
     if not currency_code:
-        currency_code = get_currency_from_ip_address(request.META['REMOTE_ADDR'])
+        currency_code = get_currency_from_ip_address(get_client_ip(request))
 
     return currency_code or settings.DEFAULT_CURRENCY
 
