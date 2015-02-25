@@ -155,7 +155,7 @@ class MetasettingsTests(TestCase):
             'submit': 1,
             'language_code': 'en',
             'currency_code': 'EUR',
-            'redirect_url': reverse('root')
+            'redirect_url': '/'
         })
 
         self.assertEqual(response.status_code, 302)
