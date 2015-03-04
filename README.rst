@@ -112,4 +112,10 @@ in your settings.
 We recommend to use `django-geoip-utils <https://github.com/thoas/django-geoip-utils>`_
 which provides some helpers to manipulate GeoIP API.
 
+Inspirations
+------------
+
+* The ``CurrencyField`` is heavily inspired from ``CountryField`` of the great `django-countries`_
+
 .. _GeoIP: https://docs.djangoproject.com/en/dev/ref/contrib/gis/geoip/
+.. _django-countries: https://github.com/SmileyChris/django-countries
