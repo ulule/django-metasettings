@@ -65,12 +65,12 @@ Usage
 
 To import current currency rates, run ::
 
-    python manage.py sync_rates --app_id=openexchangesratesappid
+    $ python manage.py sync_rates --app_id=openexchangesratesappid
 
 
 To import currency rates in a date range, run ::
 
-    python manage.py sync_rates --app_id=openexchangesratesappid --date_start=2011-10-01 --date_end=2013-10-01
+    $ python manage.py sync_rates --app_id=openexchangesratesappid --date_start=2011-10-01 --date_end=2013-10-01
 
 It will import for each months between the two dates the currency rates.
 
