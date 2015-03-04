@@ -163,6 +163,15 @@ forms::
 
     currency = CurrencyField(blank_label='(select currency)')
 
+Roadmap
+-------
+
+see `issues <https://github.com/thoas/django-metasettings/issues>`_
+
+Missing currency? Wrong label?
+
+Don't hesitate to send patch or improvements.
+
 Inspirations
 ------------
 
