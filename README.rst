@@ -112,6 +112,57 @@ in your settings.
 We recommend to use `django-geoip-utils <https://github.com/thoas/django-geoip-utils>`_
 which provides some helpers to manipulate GeoIP API.
 
+CurrencyField
+-------------
+
+A currency field for Django models that provides all ISO 4217 currencies as choices.
+
+``CurrencyField`` is based on Django's ``CharField``, providing choices
+corresponding to the official ISO 4217 list of currencies (with a default
+``max_length`` of 3).
+
+Consider the following model using a ``CurrencyField``:
+
+.. code-block:: python
+
+    from django.db import models
+
+    from metasettings.fields import CurrencyField
+
+    class Project(models.Model):
+        name = models.CharField(max_length=100)
+        currency = CurrencyField()
+
+Any ``Project`` instance will have a ``currency`` attribute that you can use to
+get details of the project's currency:
+
+.. code-block:: python
+
+    >>> project = Project(name='My project', currency='EUR')
+    >>> project.currency
+    Currency(code='EUR')
+    >>> project.currency.label
+    'Euro'
+    >>> project.currency.symbol
+    '€'
+    >>> project = Project(name='My project', currency='USD')
+    >>> project.currency
+    Currency(code='USD')
+    >>> project.currency.label
+    'United States Dollar'
+    >>> project.currency.symbol
+    '$'
+    >>> project.currency.trigram
+    'USD'
+
+This object (``project.currency`` in the example) is a ``Currency`` instance,
+which is described below.
+
+Use ``blank_label`` to set the label for the initial blank choice shown in
+forms::
+
+    currency = CurrencyField(blank_label='(select currency)')
+
 Inspirations
 ------------
 
