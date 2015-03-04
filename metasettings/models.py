@@ -6,51 +6,151 @@ from collections import defaultdict
 from django.utils import translation
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.db import models
 
 from . import settings
+from .helpers import get_client_ip
 
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ips = x_forwarded_for.split(',')
+class Currencies(object):
+    @cached_property
+    def currencies(self):
+        return dict(settings.CURRENCY_CHOICES)
 
-        for ip in ips:
-            if 'unknown' not in ip:
-                return ip.strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
+    @cached_property
+    def trigrams(self):
+        return dict(settings.CURRENCY_TRIGRAMS)
 
-    return ip
+    @cached_property
+    def labels(self):
+        return dict(settings.CURRENCY_LABELS)
+
+    @cached_property
+    def symbols(self):
+        return dict(settings.CURRENCY_SYMBOLS)
+
+    def __iter__(self):
+        currencies = self.currencies
+
+        for code, value in currencies.items():
+            yield code, value
+
+    @cached_property
+    def countries(self):
+        results = defaultdict(list)
+
+        for country_code, currency_code in settings.CURRENCY_BY_COUNTRIES:
+            results[currency_code].append(country_code)
+
+        return results
+
+    def get_symbol(self, code):
+        return self.symbols.get(code) or ''
+
+    def get_label(self, code):
+        return self.labels.get(code) or ''
+
+    def get_trigram(self, code):
+        return self.trigrams.get(code) or ''
+
+    def get_countries(self, code):
+        return self.countries.get(code) or []
+
+    def __bool__(self):
+        return bool(self.currencies)
+
+    __nonzero__ = __bool__
+
+    def __contains__(self, code):
+        return code in self.currencies
+
+
+currencies = Currencies()
+
+
+@python_2_unicode_compatible
+class Currency(object):
+    def __init__(self, code):
+        self.code = code
+
+    def __str__(self):
+        return force_text(self.code or '')
+
+    def __eq__(self, other):
+        return force_text(self) == force_text(other or '')
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(force_text(self))
+
+    def __repr__(self):
+        repr_text = "{0}(code={1})"
+
+        return repr_text.format(
+            self.__class__.__name__, repr(self.code))
+
+    def __bool__(self):
+        return bool(self.code)
+
+    __nonzero__ = __bool__   # Python 2 compatibility.
+
+    def __len__(self):
+        return len(force_text(self))
+
+    @property
+    def symbol(self):
+        return currencies.get_symbol(self.code)
+
+    @property
+    def label(self):
+        return currencies.get_label(self.code)
+
+    @property
+    def trigram(self):
+        return currencies.get_trigram(self.code)
+
+    @property
+    def countries(self):
+        return currencies.get_countries(self.code)
+
+    @classmethod
+    def from_ip_address(cls, ip_address):
+        code = None
+
+        try:
+            from .compat import GeoIP
+        except ImportError, e:
+            logging.info(e)
+        else:
+            g = GeoIP()
+            country = g.country(ip_address)
+
+            currency_by_countries = dict(settings.CURRENCY_BY_COUNTRIES)
+
+            if 'country_code' in country and country['country_code'] in currency_by_countries:
+                code = currency_by_countries.get(country['country_code'], None)
+
+        return cls(code or settings.DEFAULT_CURRENCY)
+
+    @classmethod
+    def from_request(cls, request):
+        code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
+
+        if code is not None:
+            return code
+
+        return cls.from_ip_address(get_client_ip(request))
 
 
 def get_currency_from_request(request):
-    currency_code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
-
-    if not currency_code:
-        currency_code = get_currency_from_ip_address(get_client_ip(request))
-
-    return currency_code or settings.DEFAULT_CURRENCY
+    return Currency.from_request(request)
 
 
 def get_currency_from_ip_address(ip_address):
-    currency_code = None
-
-    try:
-        from .compat import GeoIP
-    except ImportError, e:
-        logging.info(e)
-    else:
-        g = GeoIP()
-        country = g.country(ip_address)
-
-        currency_by_countries = dict(settings.CURRENCY_BY_COUNTRIES)
-
-        if 'country_code' in country and country['country_code'] in currency_by_countries:
-            currency_code = currency_by_countries.get(country['country_code'], None)
-
-    return currency_code
+    return Currency.from_ip_address(ip_address)
 
 
 def get_language_from_request(request):

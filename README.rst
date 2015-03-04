@@ -168,9 +168,8 @@ Roadmap
 
 see `issues <https://github.com/thoas/django-metasettings/issues>`_
 
-Missing currency? Wrong label?
-
-Don't hesitate to send patch or improvements.
+This application only includes major currencies, don't hesitate to send
+patch or improvements.
 
 Inspirations
 ------------
