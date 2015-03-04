@@ -75,23 +75,29 @@ To import currency rates in a date range, run ::
 It will import for each months between the two dates the currency rates.
 
 The OpenExchangeRates app id can also be stored in the
-`OPENEXCHANGERATES_APP_ID` Django setting.
+``OPENEXCHANGERATES_APP_ID`` Django setting.
 
-If you can to convert an amount from on currency to another ::
+If you can to convert an amount from on currency to another:
+
+.. code-block:: python
 
     from metasettings.models import convert_amount
 
     convert_amount('EUR', 'USD', 15)  # ~20 euros
 
 
-By default it will return a full decimal, if you want a converted integer ::
+By default it will return a full decimal, if you want a converted integer:
+
+.. code-block:: python
 
     from metasettings.models import convert_amount
 
     convert_amount('EUR', 'USD', 15, ceil=True)  # ~20 euros
 
 
-To retrieve the currency with a client IP Address::
+To retrieve the currency with a client IP Address:
+
+.. code-block:: python
 
     from metasettings.models import get_currency_from_ip_address
 
@@ -103,7 +109,7 @@ then we are linking the country to an existing currency.
 So don't forget to import a fresh GeoIP database and be sure to have **GEOIP_PATH**
 in your settings.
 
-We recommend to use `django-geoip-utils <https://github.com/Gidsy/django-geoip-utils>`_
+We recommend to use `django-geoip-utils <https://github.com/thoas/django-geoip-utils>`_
 which provides some helpers to manipulate GeoIP API.
 
 .. _GeoIP: https://docs.djangoproject.com/en/dev/ref/contrib/gis/geoip/
