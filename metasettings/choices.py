@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 CURRENCY_CHOICES = (
-    ('USD', u'$'),
+    ('USD', u'$USD'),
     ('EUR', u'€'),
     ('GBP', u'£'),
     ('AUD', u'$AUD'),
