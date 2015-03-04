@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+import unittest
+
 from mock import patch
 
 from datetime import date
@@ -16,17 +21,21 @@ from metasettings.models import (CurrencyRate, convert_amount,
                                  get_currency_from_ip_address)
 from metasettings.settings import CURRENCY_CHOICES
 
+from .models import Project
+
 
 class MetasettingsTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_sync_rates(self):
         call_command('sync_rates', app_id=settings.OPENEXCHANGERATES_APP_ID)
 
         self.assertEqual(CurrencyRate.objects.filter(year__isnull=True, month__isnull=True).count(),
                          len(dict(CURRENCY_CHOICES).keys()))
 
+    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_sync_rates_with_date_start(self):
         date_start = date.today()
 
@@ -37,6 +46,7 @@ class MetasettingsTests(TestCase):
         self.assertEqual(CurrencyRate.objects.filter(year=date_start.year, month=date_start.month).count(),
                          len(dict(CURRENCY_CHOICES).keys()))
 
+    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_sync_rates_with_date_start_and_date_end(self):
         months_count = 5
 
@@ -64,6 +74,7 @@ class MetasettingsTests(TestCase):
 
         self.assertEqual(count, total)
 
+    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_convert_amount(self):
         call_command('sync_rates', app_id=settings.OPENEXCHANGERATES_APP_ID)
 
@@ -109,29 +120,29 @@ class MetasettingsTests(TestCase):
             t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 1 %}")
             result = t.render(Context())
 
-            self.assertEqual(result, u'21')
+            self.assertEqual(result, '21')
 
             t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 ceil=1 %}")
             result = t.render(Context())
 
-            self.assertEqual(result, u'21')
+            self.assertEqual(result, '21')
 
             t = Template("{% load metasettings_tags %}{% convert_amount from_currency='EUR' to_currency='USD' amount=15 %}")
             result = t.render(Context())
 
-            self.assertEqual(result, u'20.5237103585')
+            self.assertEqual(result, '20.5237103585')
 
             t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 ceil=1 as amount %}{{ amount }}")
             result = t.render(Context())
 
-            self.assertEqual(result, u'21')
+            self.assertEqual(result, '21')
 
             t = Template("{% load metasettings_tags %}{% get_currency_from_request request as currency %}{{ currency }}")
             result = t.render(Context({
                 'request': self.factory.get('/')
             }))
 
-            self.assertEqual(result, u'EUR')
+            self.assertEqual(result, 'EUR')
 
             t = Template("{% load metasettings_tags %}{% get_language_from_request request as lang %}{{ lang }}")
             result = t.render(Context({
@@ -157,3 +168,22 @@ class MetasettingsTests(TestCase):
         })
 
         self.assertEqual(response.status_code, 302)
+
+
+class FieldTests(TestCase):
+    def test_assign(self):
+        project = Project(currency='USD')
+        project.save()
+
+        assert project.currency.symbol == '$'
+        assert project.currency.label == 'United States Dollar'
+        assert project.currency.trigram == 'USD'
+        assert project.currency.code == 'USD'
+
+        project = Project(currency='EUR')
+        project.save()
+
+        assert project.currency.symbol == '€'
+        assert project.currency.label == 'Euro'
+        assert project.currency.trigram == ''
+        assert project.currency.code == 'EUR'
