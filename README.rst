@@ -2,8 +2,12 @@
 django-metasettings
 ===================
 
+.. image:: https://secure.travis-ci.org/thoas/django-metasettings.png?branch=master
+    :alt: Build Status
+    :target: http://travis-ci.org/thoas/django-metasettings
+
 A reusable Django application to control the currency rate and favorite
-language code, inspired by etsy
+language code, inspired by etsy.
 
 First you need to request an app id at
 `open exchange rates <https://openexchangerates.org/>`_ to import currency rates.

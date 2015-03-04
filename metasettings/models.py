@@ -141,7 +141,7 @@ class CurrencyRateManager(models.Manager):
 
 class CurrencyRate(models.Model):
     currency = models.CharField(max_length=3, choices=settings.CURRENCY_LABELS, verbose_name=_('Currency'))
-    rate = models.DecimalField(verbose_name=_(u'Rate'), max_digits=7, decimal_places=2)
+    rate = models.DecimalField(verbose_name=_('Rate'), max_digits=7, decimal_places=2)
 
     month = models.PositiveIntegerField(null=True, blank=True)
     year = models.PositiveIntegerField(null=True, blank=True)

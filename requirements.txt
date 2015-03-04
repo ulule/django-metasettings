@@ -1,4 +1,4 @@
 django-discover-runner
 coverage
-Django<=1.6
 python-dateutil
+mock

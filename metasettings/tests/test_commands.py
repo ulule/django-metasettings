@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import unittest
+try:
+    from unittest import skipUnless
+except:
+    from django.utils.unittest import skipUnless
 
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -22,14 +25,14 @@ class CommandsTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
+    @skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_sync_rates(self):
         call_command('sync_rates', app_id=settings.OPENEXCHANGERATES_APP_ID)
 
         self.assertEqual(CurrencyRate.objects.filter(year__isnull=True, month__isnull=True).count(),
                          len(dict(CURRENCY_CHOICES).keys()))
 
-    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
+    @skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_sync_rates_with_date_start(self):
         date_start = date.today()
 
@@ -40,7 +43,7 @@ class CommandsTests(TestCase):
         self.assertEqual(CurrencyRate.objects.filter(year=date_start.year, month=date_start.month).count(),
                          len(dict(CURRENCY_CHOICES).keys()))
 
-    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
+    @skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_sync_rates_with_date_start_and_date_end(self):
         months_count = 5
 
@@ -68,7 +71,7 @@ class CommandsTests(TestCase):
 
         self.assertEqual(count, total)
 
-    @unittest.skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
+    @skipUnless(settings.OPENEXCHANGERATES_APP_ID is not None, "OPENEXCHANGERATES_APP_ID not defined")
     def test_convert_amount(self):
         call_command('sync_rates', app_id=settings.OPENEXCHANGERATES_APP_ID)
 
