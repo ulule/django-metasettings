@@ -1,5 +1,6 @@
 import logging
 import math
+import decimal
 
 from collections import defaultdict
 
@@ -9,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.db import models
 
-from . import settings
+from . import settings, exceptions
 from .helpers import get_client_ip
 
 
@@ -125,13 +126,11 @@ class Currency(object):
         except ImportError, e:
             logging.info(e)
         else:
-            g = GeoIP()
-            country = g.country(ip_address)
+            code = GeoIP().country_code(ip_address)
 
             currency_by_countries = dict(settings.CURRENCY_BY_COUNTRIES)
 
-            if 'country_code' in country and country['country_code'] in currency_by_countries:
-                code = currency_by_countries.get(country['country_code'], None)
+            code = currency_by_countries.get(code, None)
 
         return cls(code or settings.DEFAULT_CURRENCY)
 
@@ -208,7 +207,7 @@ class CurrencyRateManager(models.Manager):
 
         """
         if currency not in self.CURRENCY_CHOICES:
-            return (None, False)
+            return None, False
 
         try:
             filters = {'currency': currency}
@@ -226,7 +225,7 @@ class CurrencyRateManager(models.Manager):
             if existing_rate.rate != rate:
                 existing_rate.rate = rate
                 existing_rate.save()
-            return (existing_rate, False)
+            return existing_rate, False
 
         except CurrencyRate.DoesNotExist:
             currency_rate = CurrencyRate()
@@ -236,12 +235,18 @@ class CurrencyRateManager(models.Manager):
                 setattr(currency_rate, k, v)
 
             currency_rate.save()
-            return (currency_rate, True)
+
+            return currency_rate, True
 
 
 class CurrencyRate(models.Model):
-    currency = models.CharField(max_length=3, choices=settings.CURRENCY_LABELS, verbose_name=_('Currency'))
-    rate = models.DecimalField(verbose_name=_('Rate'), max_digits=7, decimal_places=2)
+    currency = models.CharField(max_length=3,
+                                choices=settings.CURRENCY_LABELS,
+                                verbose_name=_('Currency'))
+
+    rate = models.DecimalField(verbose_name=_('Rate'),
+                               max_digits=7,
+                               decimal_places=2)
 
     month = models.PositiveIntegerField(null=True, blank=True)
     year = models.PositiveIntegerField(null=True, blank=True)
@@ -249,3 +254,188 @@ class CurrencyRate(models.Model):
     date_last_sync = models.DateTimeField(auto_now_add=True, auto_now=True)
 
     objects = CurrencyRateManager()
+
+
+@python_2_unicode_compatible
+class Money(object):
+    __hash__ = None
+
+    def __init__(self, amount="0", currency=None):
+        try:
+            self.amount = decimal.Decimal(amount)
+        except decimal.InvalidOperation:
+            raise ValueError("amount value could not be converted to "
+                             "Decimal(): '{}'".format(amount))
+        self.currency = currency
+
+    def __repr__(self):
+        return "{} {}".format(self.currency, self.amount)
+
+    def __str__(self):
+        return force_text("{} {:,.2f}".format(self.currency, self.amount))
+
+    def __lt__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '<')
+            other = other.amount
+        return self.amount < other
+
+    def __le__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '<=')
+            other = other.amount
+        return self.amount <= other
+
+    def __eq__(self, other):
+        if isinstance(other, Money):
+            return ((self.amount == other.amount) and
+                    (self.currency == other.currency))
+        return False
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __gt__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '>')
+            other = other.amount
+        return self.amount > other
+
+    def __ge__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '>=')
+            other = other.amount
+        return self.amount >= other
+
+    def __bool__(self):
+        return bool(self.amount)
+
+    def __add__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '+')
+            other = other.amount
+        amount = self.amount + other
+        return self.__class__(amount, self.currency)
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '-')
+            other = other.amount
+        amount = self.amount - other
+        return self.__class__(amount, self.currency)
+
+    def __rsub__(self, other):
+        return (-self).__add__(other)
+
+    def __mul__(self, other):
+        if isinstance(other, Money):
+            raise TypeError("multiplication is unsupported between "
+                            "two money objects")
+        amount = self.amount * other
+        return self.__class__(amount, self.currency)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '/')
+
+            if other.amount == 0:
+                raise ZeroDivisionError()
+
+            return self.amount / other.amount
+
+        if other == 0:
+            raise ZeroDivisionError()
+
+        amount = self.amount / other
+
+        return self.__class__(amount, self.currency)
+
+    def __floordiv__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, '//')
+
+            if other.amount == 0:
+                raise ZeroDivisionError()
+            return self.amount // other.amount
+
+        if other == 0:
+            raise ZeroDivisionError()
+
+        amount = self.amount // other
+        return self.__class__(amount, self.currency)
+
+    def __mod__(self, other):
+        if isinstance(other, Money):
+            raise TypeError("modulo is unsupported between two '{}' "
+                            "objects".format(self.__class__.__name__))
+        if other == 0:
+            raise ZeroDivisionError()
+
+        amount = self.amount % other
+        return self.__class__(amount, self.currency)
+
+    def __divmod__(self, other):
+        if isinstance(other, Money):
+            if other.currency != self.currency:
+                raise exceptions.CurrencyMismatch(self.currency, other.currency, 'divmod')
+
+            if other.amount == 0:
+                raise ZeroDivisionError()
+
+            return divmod(self.amount, other.amount)
+
+        if other == 0:
+            raise ZeroDivisionError()
+
+        whole, remainder = divmod(self.amount, other)
+
+        return (self.__class__(whole, self.currency),
+                self.__class__(remainder, self.currency))
+
+    def __pow__(self, other):
+        if isinstance(other, Money):
+            raise TypeError("power operator is unsupported between two '{}' "
+                            "objects".format(self.__class__.__name__))
+        amount = self.amount ** other
+        return self.__class__(amount, self.currency)
+
+    def __neg__(self):
+        return self.__class__(-self.amount, self.currency)
+
+    def __pos__(self):
+        return self.__class__(+self.amount, self.currency)
+
+    def __abs__(self):
+        return self.__class__(abs(self.amount), self.currency)
+
+    def __int__(self):
+        return int(self.amount)
+
+    def __float__(self):
+        return float(self.amount)
+
+    def __round__(self, ndigits=0):
+        return self.__class__(round(self.amount, ndigits), self.currency)
+
+    def to(self, currency, ceil=False):
+        """Return equivalent money object in another currency"""
+        if currency == self.currency:
+            return self
+
+        amount = convert_amount(self.currency, currency, self.amount, ceil=ceil)
+
+        return self.__class__(amount, currency)
