@@ -251,7 +251,7 @@ class CurrencyRate(models.Model):
     month = models.PositiveIntegerField(null=True, blank=True)
     year = models.PositiveIntegerField(null=True, blank=True)
 
-    date_last_sync = models.DateTimeField(auto_now_add=True, auto_now=True)
+    date_last_sync = models.DateTimeField(auto_now=True)
 
     objects = CurrencyRateManager()
 
