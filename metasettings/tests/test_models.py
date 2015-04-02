@@ -47,7 +47,7 @@ class ModelTests(TestCase):
             t = Template("{% load metasettings_tags %}{% convert_amount from_currency='EUR' to_currency='USD' amount=15 %}")
             result = t.render(Context())
 
-            self.assertEqual(result, '20.5237103585')
+            self.assertEqual(round(float(result), 2), 20.52)
 
             t = Template("{% load metasettings_tags %}{% convert_amount 'EUR' 'USD' 15 ceil=1 as amount %}{{ amount }}")
             result = t.render(Context())

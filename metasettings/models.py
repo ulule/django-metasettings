@@ -123,7 +123,7 @@ class Currency(object):
 
         try:
             from .compat import GeoIP
-        except ImportError, e:
+        except ImportError as e:
             logging.info(e)
         else:
             code = GeoIP().country_code(ip_address)
