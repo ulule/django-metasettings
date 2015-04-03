@@ -14,18 +14,43 @@ from metasettings.models import (CurrencyRate,
                                  CurrencyRateManager,
                                  get_currency_from_ip_address)
 
+from metasettings.compat import GeoIP
+
 
 class ModelTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
     def test_get_currency_from_ip_address(self):
-        self.assertEqual(get_currency_from_ip_address('78.192.244.8'), 'EUR')  # France
-        self.assertEqual(get_currency_from_ip_address('69.197.132.80'), 'USD')  # USA
-        self.assertEqual(get_currency_from_ip_address('80.193.214.232'), 'GBP')  # United Kingdom
-        self.assertEqual(get_currency_from_ip_address('218.75.205.72'), 'USD')  # China
-        self.assertEqual(get_currency_from_ip_address('203.152.216.75'), 'JPY')  # Japan
-        self.assertEqual(get_currency_from_ip_address('187.32.127.161'), 'BRL')  # Brasil
+        with patch.object(GeoIP, 'country_code') as country_code:
+            country_code.return_value = 'FR'
+
+            self.assertEqual(get_currency_from_ip_address('78.192.244.8'), 'EUR')  # France
+
+        with patch.object(GeoIP, 'country_code') as country_code:
+            country_code.return_value = 'US'
+
+            self.assertEqual(get_currency_from_ip_address('69.197.132.80'), 'USD')  # USA
+
+        with patch.object(GeoIP, 'country_code') as country_code:
+            country_code.return_value = 'GB'
+
+            self.assertEqual(get_currency_from_ip_address('80.193.214.232'), 'GBP')  # United Kingdom
+
+        with patch.object(GeoIP, 'country_code') as country_code:
+            country_code.return_value = 'CN'
+
+            self.assertEqual(get_currency_from_ip_address('218.75.205.72'), 'USD')  # China
+
+        with patch.object(GeoIP, 'country_code') as country_code:
+            country_code.return_value = 'JP'
+
+            self.assertEqual(get_currency_from_ip_address('203.152.216.75'), 'JPY')  # Japan
+
+        with patch.object(GeoIP, 'country_code') as country_code:
+            country_code.return_value = 'BR'
+
+            self.assertEqual(get_currency_from_ip_address('187.32.127.161'), 'BRL')  # Brasil
 
     def test_convert_amount_templatetags(self):
         with patch.object(CurrencyRateManager, 'get_currency_rates') as get_currency_rates:
