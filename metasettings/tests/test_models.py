@@ -14,14 +14,14 @@ from metasettings.models import (CurrencyRate,
                                  CurrencyRateManager,
                                  get_currency_from_ip_address)
 
-from metasettings.compat import GeoIP
-
 
 class ModelTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
     def test_get_currency_from_ip_address(self):
+        from metasettings.compat import GeoIP
+
         with patch.object(GeoIP, 'country_code') as country_code:
             country_code.return_value = 'FR'
 
