@@ -29,7 +29,7 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        app_id = options.get('app_id', getattr(settings, 'OPENEXCHANGERATES_APP_ID'))
+        app_id = options.get('app_id', getattr(settings, 'OPENEXCHANGERATES_APP_ID', None))
 
         if not app_id:
             raise CommandError('The openexchangerates APP ID is required')
