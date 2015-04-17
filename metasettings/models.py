@@ -139,7 +139,7 @@ class Currency(object):
         code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
 
         if code is not None:
-            return code
+            return cls(code)
 
         return cls.from_ip_address(get_client_ip(request))
 
