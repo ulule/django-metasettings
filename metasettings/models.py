@@ -31,6 +31,10 @@ class Currencies(object):
     def symbols(self):
         return dict(settings.CURRENCY_SYMBOLS)
 
+    @cached_property
+    def currency_by_countries(self):
+        return dict(settings.CURRENCY_BY_COUNTRIES)
+
     def __iter__(self):
         currencies = self.currencies
 
@@ -41,7 +45,7 @@ class Currencies(object):
     def countries(self):
         results = defaultdict(list)
 
-        for country_code, currency_code in settings.CURRENCY_BY_COUNTRIES:
+        for country_code, currency_code in self.currency_by_countries:
             results[currency_code].append(country_code)
 
         return results
@@ -128,9 +132,7 @@ class Currency(object):
         else:
             code = GeoIP().country_code(ip_address)
 
-            currency_by_countries = dict(settings.CURRENCY_BY_COUNTRIES)
-
-            code = currency_by_countries.get(code, None)
+            code = currencies.currency_by_countries.get(code, None)
 
         return cls(code or settings.DEFAULT_CURRENCY)
 
@@ -138,7 +140,7 @@ class Currency(object):
     def from_request(cls, request):
         code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
 
-        if code is not None:
+        if code is not None and code in currencies.currencies:
             return cls(code)
 
         return cls.from_ip_address(get_client_ip(request))
@@ -206,9 +208,6 @@ class CurrencyRateManager(models.Manager):
         was neither updated nor created then None is returned.
 
         """
-        if currency not in self.CURRENCY_CHOICES:
-            return None, False
-
         try:
             filters = {'currency': currency}
             if date:
