@@ -2,6 +2,8 @@ import logging
 import math
 import decimal
 
+import GeoIP as GeoIPC
+
 from collections import defaultdict
 
 from django.utils import translation
@@ -75,7 +77,7 @@ currencies = Currencies()
 
 
 @python_2_unicode_compatible
-class Currency(object):
+class BaseObject(object):
     def __init__(self, code):
         self.code = code
 
@@ -105,6 +107,8 @@ class Currency(object):
     def __len__(self):
         return len(force_text(self))
 
+
+class Currency(BaseObject):
     @property
     def symbol(self):
         return currencies.get_symbol(self.code)
@@ -438,3 +442,42 @@ class Money(object):
         amount = convert_amount(self.currency, currency, self.amount, ceil=ceil)
 
         return self.__class__(amount, currency)
+
+
+class Timezones(object):
+    @cached_property
+    def timezones(self):
+        return dict(settings.TIMEZONE_CHOICES)
+
+timezones = Timezones()
+
+
+class Timezone(BaseObject):
+    @classmethod
+    def from_ip_address(cls, ip_address):
+        try:
+            from .compat import GeoIP
+        except ImportError as e:
+            logging.info(e)
+        else:
+            data = GeoIP().city(ip_address)
+            zone = GeoIPC.time_zone_by_country_and_region(data['country_code'], data['region'] or '')
+
+        return cls(zone or settings.TIME_ZONE)
+
+    @classmethod
+    def from_request(cls, request):
+        zone = request.COOKIES.get(settings.TIMEZONE_COOKIE_NAME, None)
+
+        if zone is not None and zone in timezones.timezones:
+            return cls(zone)
+
+        return cls.from_ip_address(get_client_ip(request))
+
+
+def get_timezone_from_request(request):
+    return Timezone.from_request(request)
+
+
+def get_timezone_from_ip_address(ip_address):
+    return Timezone.from_ip_address(ip_address)

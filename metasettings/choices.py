@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import pytz
+
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -343,3 +345,5 @@ CURRENCY_BY_COUNTRIES = (
     ('ZM', 'USD'),
     ('ZW', 'USD')
 )
+
+TIMEZONE_CHOICES = ((tz, tz) for tz in pytz.common_timezones)
