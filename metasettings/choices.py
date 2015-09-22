@@ -347,3 +347,5 @@ CURRENCY_BY_COUNTRIES = (
 )
 
 TIMEZONE_CHOICES = ((tz, tz) for tz in pytz.common_timezones)
+
+TIME_ZONE = 'Europe/Paris'

@@ -100,6 +100,12 @@ class ModelTests(TestCase):
 
             self.assertEqual(result, settings.LANGUAGE_CODE)
 
+            t = Template("{% load metasettings_tags %}{% get_timezone_from_request request as timezone %}{{ timezone }}")
+            result = t.render(Context({
+                'request': self.factory.get('/')
+            }))
+            self.assertEqual(result, 'Europe/Paris')
+
     def test_dashboard_view(self):
         client = Client()
         response = client.post(reverse('metasettings_dashboard'))

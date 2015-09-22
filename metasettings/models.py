@@ -449,21 +449,38 @@ class Timezones(object):
     def timezones(self):
         return dict(settings.TIMEZONE_CHOICES)
 
+    def __iter__(self):
+        timezones = self.timezones
+
+        for code, value in timezones.items():
+            yield code, value
+
+    def __bool__(self):
+        return bool(self.timezones)
+
+    __nonzero__ = __bool__
+
+    def __contains__(self, code):
+        return code in self.timezones
+
+
 timezones = Timezones()
 
 
 class Timezone(BaseObject):
     @classmethod
     def from_ip_address(cls, ip_address):
+        zone = settings.TIME_ZONE
         try:
             from .compat import GeoIP
         except ImportError as e:
             logging.info(e)
         else:
             data = GeoIP().city(ip_address)
-            zone = GeoIPC.time_zone_by_country_and_region(data['country_code'], data['region'] or '')
-
-        return cls(zone or settings.TIME_ZONE)
+            if data:
+                zone = GeoIPC.time_zone_by_country_and_region(data['country_code'],
+                                                              data['region'] or '')
+        return cls(zone)
 
     @classmethod
     def from_request(cls, request):
