@@ -470,17 +470,19 @@ timezones = Timezones()
 class Timezone(BaseObject):
     @classmethod
     def from_ip_address(cls, ip_address):
-        zone = settings.TIME_ZONE
+        if not ip_address:
+            return cls(settings.TIME_ZONE)
         try:
             from .compat import GeoIP
         except ImportError as e:
             logging.info(e)
         else:
             data = GeoIP().city(ip_address)
+            zone = None
             if data:
                 zone = GeoIPC.time_zone_by_country_and_region(data['country_code'],
                                                               data['region'] or '')
-        return cls(zone)
+        return cls(zone or settings.TIME_ZONE)
 
     @classmethod
     def from_request(cls, request):

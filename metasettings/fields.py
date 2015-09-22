@@ -123,7 +123,7 @@ class TimezoneField(BaseChoiceField):
         self.timezones = timezones_class() if timezones_class else timezones
         kwargs.update({
             'max_length': 63,
-            'choices': self.timezones,
+            'choices': sorted(self.timezones, key=lambda x: x[1]),
         })
         super(TimezoneField, self).__init__(*args, **kwargs)
 
