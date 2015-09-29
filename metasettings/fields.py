@@ -25,9 +25,6 @@ class BaseDescriptor(object):
 
 
 class CurrencyDescriptor(BaseDescriptor):
-    def __init__(self, field):
-        self.field = field
-
     def __get__(self, instance=None, owner=None):
         super(CurrencyDescriptor, self).__get__(instance, owner)
         return Currency(
@@ -68,6 +65,19 @@ class BaseChoiceField(models.CharField):
             include_blank=include_blank, blank_choice=blank_choice, *args,
             **kwargs)
 
+    def get_prep_value(self, value):
+        "Returns field's value prepared for saving into a database."
+        # Convert the Currency to unicode for database insertion.
+        if value is None or getattr(value, 'code', '') is None:
+            return None
+        return force_text(value)
+
+    def get_prep_lookup(self, lookup_type, value):
+        if hasattr(value, 'code'):
+            value = value.code
+
+        return super(BaseChoiceField, self).get_prep_lookup(lookup_type, value)
+
     get_choices = lazy(get_choices, list)
 
 
@@ -84,19 +94,6 @@ class CurrencyField(BaseChoiceField):
         })
 
         return super(CurrencyField, self).__init__(*args, **kwargs)
-
-    def get_prep_value(self, value):
-        "Returns field's value prepared for saving into a database."
-        # Convert the Currency to unicode for database insertion.
-        if value is None or getattr(value, 'code', '') is None:
-            return None
-        return force_text(value)
-
-    def get_prep_lookup(self, lookup_type, value):
-        if hasattr(value, 'code'):
-            value = value.code
-
-        return super(CurrencyField, self).get_prep_lookup(lookup_type, value)
 
     def deconstruct(self):
         name, path, args, kwargs = super(CurrencyField, self).deconstruct()
@@ -136,18 +133,6 @@ class TimezoneField(BaseChoiceField):
 
         return name, path, args, kwargs
 
-    def get_prep_value(self, value):
-        "Returns field's value prepared for saving into a database."
-        # Convert the Currency to unicode for database insertion.
-        if value is None or getattr(value, 'code', '') is None:
-            return None
-        return force_text(value)
-
-    def get_prep_lookup(self, lookup_type, value):
-        if hasattr(value, 'code'):
-            value = value.code
-
-        return super(TimezoneField, self).get_prep_lookup(lookup_type, value)
 
 try:  # pragma: no cover
     from south.modelsinspector import add_introspection_rules

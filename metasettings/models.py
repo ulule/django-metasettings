@@ -1,6 +1,7 @@
 import logging
 import math
 import decimal
+import pytz
 
 import GeoIP as GeoIPC
 
@@ -99,8 +100,17 @@ class BaseObject(object):
         return repr_text.format(
             self.__class__.__name__, repr(self.code))
 
+    def __unicode__(self):
+        return force_text(self.code or '')
+
     def __bool__(self):
         return bool(self.code)
+
+    def upper(self):
+        return self.code.upper()
+
+    def encode(self, key):
+        return force_text(self.code or '').encode(key)
 
     __nonzero__ = __bool__   # Python 2 compatibility.
 
@@ -492,6 +502,12 @@ class Timezone(BaseObject):
             return cls(zone)
 
         return cls.from_ip_address(get_client_ip(request))
+
+    def get_timezone_value(self):
+        if not self.code:
+            return None
+
+        return pytz.timezone(self.code)
 
 
 def get_timezone_from_request(request):

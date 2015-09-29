@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from mock import patch
+import pytz
 
 from django.test import TestCase
 from django.test.client import Client
@@ -12,6 +13,7 @@ from django.test.client import RequestFactory
 
 from metasettings.models import (CurrencyRate,
                                  CurrencyRateManager,
+                                 Timezone,
                                  get_currency_from_ip_address,
                                  get_timezone_from_ip_address)
 
@@ -58,6 +60,11 @@ class ModelTests(TestCase):
 
             self.assertEqual(get_currency_from_ip_address('201.83.41.11'), 'BRL')  # Brasil
             self.assertEqual(get_timezone_from_ip_address('201.83.41.11'), 'America/Sao_Paulo')
+
+    def test_get_timezone_value(self):
+        timezone = Timezone(code='Europe/Paris')
+
+        self.assertEqual(timezone.get_timezone_value(), pytz.timezone('Europe/Paris'))
 
     def test_convert_amount_templatetags(self):
         with patch.object(CurrencyRateManager, 'get_currency_rates') as get_currency_rates:
