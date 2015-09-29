@@ -502,7 +502,8 @@ class Timezone(BaseObject):
 
         return cls.from_ip_address(get_client_ip(request))
 
-    def get_timezone_value(self):
+    @property
+    def value(self):
         if self.code:
             return pytz.timezone(self.code)
         return None

@@ -64,7 +64,7 @@ class ModelTests(TestCase):
     def test_get_timezone_value(self):
         timezone = Timezone(code='Europe/Paris')
 
-        self.assertEqual(timezone.get_timezone_value(), pytz.timezone('Europe/Paris'))
+        self.assertEqual(timezone.value, pytz.timezone('Europe/Paris'))
 
     def test_convert_amount_templatetags(self):
         with patch.object(CurrencyRateManager, 'get_currency_rates') as get_currency_rates:
