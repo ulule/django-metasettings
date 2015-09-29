@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import pytz
 
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 
 CURRENCY_CHOICES = (
@@ -348,4 +349,4 @@ CURRENCY_BY_COUNTRIES = (
 
 TIMEZONE_CHOICES = sorted(((tz, tz) for tz in pytz.common_timezones), key=lambda x: x[1])
 
-TIME_ZONE = 'Europe/Paris'
+TIME_ZONE = getattr(settings, 'TIME_ZONE', 'Europe/Paris')
