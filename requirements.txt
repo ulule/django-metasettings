@@ -2,3 +2,4 @@ django-discover-runner
 coverage
 python-dateutil
 mock
+pytz

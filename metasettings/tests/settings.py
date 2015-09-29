@@ -36,7 +36,10 @@ if django.VERSION <= (1, 6):
 
 OPENEXCHANGERATES_APP_ID = os.getenv('OPENEXCHANGERATES_APP_ID')
 
-GEOIP_PATH = os.path.join(os.path.dirname(__file__), 'data', 'GeoIP.dat')
+GEOIP_PATH = os.path.join(os.path.dirname(__file__), 'data')
+
+TIME_ZONE = 'Europe/Paris'
+METASETTINGS_TIME_ZONE = TIME_ZONE
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -5,6 +5,7 @@ from django.template import TemplateSyntaxError
 
 from metasettings.models import (get_currency_from_request as get_currency,
                                  get_language_from_request as get_language,
+                                 get_timezone_from_request as get_timezone,
                                  convert_amount as _convert_amount)
 
 
@@ -66,6 +67,23 @@ def get_language_from_request(parser, token):
     request, var_name = m.groups()
 
     return Node(request, get_language, var_name)
+
+
+@register.tag
+def get_timezone_from_request(parser, token):
+    try:
+        tag_name, arg = token.contents.split(None, 1)
+    except ValueError:
+        raise template.TemplateSyntaxError("%s tag requires arguments" % token.contents.split()[0])
+
+    m = re.search(r'(.*?) as (\w+)', arg)
+
+    if not m:
+        raise template.TemplateSyntaxError("%s tag had invalid arguments" % tag_name)
+
+    request, var_name = m.groups()
+
+    return Node(request, get_timezone, var_name)
 
 
 class ConvertAmountNode(template.Node):

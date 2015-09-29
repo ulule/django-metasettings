@@ -1,8 +1,9 @@
 import logging
 import math
 import decimal
+import pytz
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from django.utils import translation
 from django.utils.functional import cached_property
@@ -12,6 +13,7 @@ from django.db import models
 
 from . import settings, exceptions
 from .helpers import get_client_ip
+from .timezone import time_zone_by_country_and_region
 
 
 class Currencies(object):
@@ -75,7 +77,7 @@ currencies = Currencies()
 
 
 @python_2_unicode_compatible
-class Currency(object):
+class BaseObject(object):
     def __init__(self, code):
         self.code = code
 
@@ -97,14 +99,25 @@ class Currency(object):
         return repr_text.format(
             self.__class__.__name__, repr(self.code))
 
+    def __unicode__(self):
+        return force_text(self.code or '')
+
     def __bool__(self):
         return bool(self.code)
+
+    def upper(self):
+        return self.code.upper()
+
+    def encode(self, key):
+        return force_text(self.code or '').encode(key)
 
     __nonzero__ = __bool__   # Python 2 compatibility.
 
     def __len__(self):
         return len(force_text(self))
 
+
+class Currency(BaseObject):
     @property
     def symbol(self):
         return currencies.get_symbol(self.code)
@@ -438,3 +451,67 @@ class Money(object):
         amount = convert_amount(self.currency, currency, self.amount, ceil=ceil)
 
         return self.__class__(amount, currency)
+
+
+class Timezones(object):
+    @cached_property
+    def timezones(self):
+        return OrderedDict(settings.TIMEZONE_CHOICES)
+
+    def __iter__(self):
+        timezones = self.timezones
+
+        for code, value in timezones.items():
+            yield code, value
+
+    def __bool__(self):
+        return bool(self.timezones)
+
+    __nonzero__ = __bool__
+
+    def __contains__(self, code):
+        return code in self.timezones
+
+
+timezones = Timezones()
+
+
+class Timezone(BaseObject):
+    @classmethod
+    def from_ip_address(cls, ip_address):
+        if not ip_address:
+            return cls(settings.TIME_ZONE)
+        try:
+            from .compat import GeoIP
+        except ImportError as e:
+            logging.info(e)
+        else:
+            data = GeoIP().city(ip_address)
+            zone = None
+            if data:
+                zone = time_zone_by_country_and_region(data['country_code'],
+                                                       data['region'] or '')
+        return cls(zone or settings.TIME_ZONE)
+
+    @classmethod
+    def from_request(cls, request):
+        zone = request.COOKIES.get(settings.TIMEZONE_COOKIE_NAME, None)
+
+        if zone is not None and zone in timezones.timezones:
+            return cls(zone)
+
+        return cls.from_ip_address(get_client_ip(request))
+
+    @property
+    def value(self):
+        if self.code:
+            return pytz.timezone(self.code)
+        return None
+
+
+def get_timezone_from_request(request):
+    return Timezone.from_request(request)
+
+
+def get_timezone_from_ip_address(ip_address):
+    return Timezone.from_ip_address(ip_address)
