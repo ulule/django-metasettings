@@ -2,4 +2,4 @@ django-discover-runner
 coverage
 python-dateutil
 mock
-GeoIP
+pytz

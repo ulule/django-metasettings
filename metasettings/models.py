@@ -3,9 +3,7 @@ import math
 import decimal
 import pytz
 
-import GeoIP as GeoIPC
-
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from django.utils import translation
 from django.utils.functional import cached_property
@@ -15,6 +13,7 @@ from django.db import models
 
 from . import settings, exceptions
 from .helpers import get_client_ip
+from .timezone import time_zone_by_country_and_region
 
 
 class Currencies(object):
@@ -457,7 +456,7 @@ class Money(object):
 class Timezones(object):
     @cached_property
     def timezones(self):
-        return dict(settings.TIMEZONE_CHOICES)
+        return OrderedDict(settings.TIMEZONE_CHOICES)
 
     def __iter__(self):
         timezones = self.timezones
@@ -490,8 +489,8 @@ class Timezone(BaseObject):
             data = GeoIP().city(ip_address)
             zone = None
             if data:
-                zone = GeoIPC.time_zone_by_country_and_region(data['country_code'],
-                                                              data['region'] or '')
+                zone = time_zone_by_country_and_region(data['country_code'],
+                                                       data['region'] or '')
         return cls(zone or settings.TIME_ZONE)
 
     @classmethod
@@ -504,10 +503,9 @@ class Timezone(BaseObject):
         return cls.from_ip_address(get_client_ip(request))
 
     def get_timezone_value(self):
-        if not self.code:
-            return None
-
-        return pytz.timezone(self.code)
+        if self.code:
+            return pytz.timezone(self.code)
+        return None
 
 
 def get_timezone_from_request(request):
