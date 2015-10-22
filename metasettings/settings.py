@@ -21,4 +21,4 @@ CURRENCY_SYMBOLS = getattr(settings, 'METASETTINGS_CURRENCY_SYMBOLS', choices.CU
 
 TIMEZONE_CHOICES = getattr(settings, 'METASETTINGS_TIMEZONE_CHOICES', choices.TIMEZONE_CHOICES)
 
-TIME_ZONE = getattr(settings, 'METASETTINGS_TIME_ZONE', choices.TIME_ZONE)
+TIME_ZONE = getattr(settings, 'METASETTINGS_TIME_ZONE', getattr(settings, 'TIME_ZONE', choices.TIME_ZONE))
