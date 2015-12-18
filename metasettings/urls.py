@@ -1,11 +1,10 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from .views import dashboard
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^dashboard/(?:(?P<status>(language|currency)+)/)?$',
         dashboard,
         name='metasettings_dashboard'),
-)
+]

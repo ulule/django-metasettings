@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.http import HttpResponse
 
 
@@ -6,12 +6,11 @@ def root(request):
     return HttpResponse('Ok')
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$',
         root,
         name='root'),
 
-    (r'^',
+    url(r'^',
         include('metasettings.urls'))
-)
+]
