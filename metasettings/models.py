@@ -150,17 +150,30 @@ class Currency(BaseObject):
         return cls(code or settings.DEFAULT_CURRENCY)
 
     @classmethod
-    def from_request(cls, request):
+    def from_cookies(cls, request):
         code = request.COOKIES.get(settings.CURRENCY_COOKIE_NAME, None)
 
         if code is not None and code in currencies.currencies:
             return cls(code)
+
+        return None
+
+    @classmethod
+    def from_request(cls, request):
+        code = cls.from_cookies(request)
+
+        if code:
+            return code
 
         return cls.from_ip_address(get_client_ip(request))
 
 
 def get_currency_from_request(request):
     return Currency.from_request(request)
+
+
+def get_currency_from_cookies(request):
+    return Currency.from_cookies(request)
 
 
 def get_currency_from_ip_address(ip_address):
@@ -445,7 +458,7 @@ class Money(object):
 
     def to(self, currency, ceil=False):
         """Return equivalent money object in another currency"""
-        if currency == self.currency:
+        if currency == self.currency or currency is None:
             return self
 
         amount = convert_amount(self.currency, currency, self.amount, ceil=ceil)
