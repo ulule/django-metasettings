@@ -4,29 +4,28 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from optparse import make_option
 from metasettings.openexchangerates import sync_rates
 
 
 class Command(BaseCommand):
-    can_import_settings = True
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--app_id',
+            dest='app_id',
+            default=None,
+            help='The openexchangerates APP ID'),
 
-    option_list = BaseCommand.option_list + (
-        make_option('--app_id',
-                    dest='app_id',
-                    default=None,
-                    help='The openexchangerates APP ID'),
+        parser.add_argument(
+            '--date_start',
+            dest='date_start',
+            default=None,
+            help='The date start to import currency rates'),
 
-        make_option('--date_start',
-                    dest='date_start',
-                    default=None,
-                    help='The date start to import currency rates'),
-
-        make_option('--date_end',
-                    dest='date_end',
-                    default=None,
-                    help='The date end to import currency rates'),
-    )
+        parser.add_argument(
+            '--date_end',
+            dest='date_end',
+            default=None,
+            help='The date end to import currency rates'),
 
     def handle(self, *args, **options):
         app_id = options.get('app_id', getattr(settings, 'OPENEXCHANGERATES_APP_ID', None))
