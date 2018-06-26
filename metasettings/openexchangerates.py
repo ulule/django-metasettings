@@ -28,7 +28,7 @@ def sync_rates(app_id, date=None):
     if not result:
         return
 
-    for currency, rate in result['rates'].iteritems():
+    for currency, rate in result['rates'].items():
         currency_rate, created = CurrencyRate.objects.update_or_create(
             currency, rate, date
         )
