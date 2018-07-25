@@ -141,11 +141,14 @@ class Currency(BaseObject):
         try:
             from .compat import GeoIP
         except ImportError as e:
-            logging.info(e)
+            logging.exception(e)
         else:
-            code = GeoIP().country_code(ip_address)
-
-            code = currencies.currency_by_countries.get(code, None)
+            try:
+                code = GeoIP().country_code(ip_address)
+            except Exception as e:
+                logging.exception(e)
+            else:
+                code = currencies.currency_by_countries.get(code, None)
 
         return cls(code or settings.DEFAULT_CURRENCY)
 
@@ -500,12 +503,16 @@ class Timezone(BaseObject):
         try:
             from .compat import GeoIP
         except ImportError as e:
-            logging.info(e)
+            logging.exception(e)
         else:
-            data = GeoIP().city(ip_address)
-            if data:
-                zone = time_zone_by_country_and_region(data['country_code'],
-                                                       data['region'] or '')
+            try:
+                data = GeoIP().city(ip_address)
+            except Exception as e:
+                logging.exception(e)
+            else:
+                if data:
+                    zone = time_zone_by_country_and_region(data['country_code'],
+                                                           data['region'] or '')
         return cls(zone)
 
     @classmethod
