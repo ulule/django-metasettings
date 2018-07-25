@@ -16,6 +16,9 @@ from .helpers import get_client_ip
 from .timezone import time_zone_by_country_and_region
 
 
+logger = logging.getLogger('django.metasettings')
+
+
 class Currencies(object):
     @cached_property
     def currencies(self):
@@ -141,12 +144,12 @@ class Currency(BaseObject):
         try:
             from .compat import GeoIP
         except ImportError as e:
-            logging.exception(e)
+            logger.exception(e)
         else:
             try:
                 code = GeoIP().country_code(ip_address)
             except Exception as e:
-                logging.exception(e)
+                logger.exception(e)
             else:
                 code = currencies.currency_by_countries.get(code, None)
 
@@ -503,12 +506,12 @@ class Timezone(BaseObject):
         try:
             from .compat import GeoIP
         except ImportError as e:
-            logging.exception(e)
+            logger.exception(e)
         else:
             try:
                 data = GeoIP().city(ip_address)
             except Exception as e:
-                logging.exception(e)
+                logger.exception(e)
             else:
                 if data:
                     zone = time_zone_by_country_and_region(data['country_code'],
