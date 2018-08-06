@@ -149,7 +149,7 @@ class Currency(BaseObject):
             try:
                 code = GeoIP().country_code(ip_address)
             except Exception as e:
-                logger.exception(e)
+                logger.warning(e)
             else:
                 code = currencies.currency_by_countries.get(code, None)
 
@@ -511,7 +511,7 @@ class Timezone(BaseObject):
             try:
                 data = GeoIP().city(ip_address)
             except Exception as e:
-                logger.exception(e)
+                logger.warning(e)
             else:
                 if data:
                     zone = time_zone_by_country_and_region(data['country_code'],
