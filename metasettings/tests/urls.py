@@ -3,14 +3,7 @@ from django.http import HttpResponse
 
 
 def root(request):
-    return HttpResponse('Ok')
+    return HttpResponse("Ok")
 
 
-urlpatterns = [
-    url(r'^$',
-        root,
-        name='root'),
-
-    url(r'^',
-        include('metasettings.urls'))
-]
+urlpatterns = [url(r"^$", root, name="root"), url(r"^", include("metasettings.urls"))]

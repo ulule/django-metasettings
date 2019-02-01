@@ -4,7 +4,9 @@ from .views import dashboard
 
 
 urlpatterns = [
-    url(r'^dashboard/(?:(?P<status>(language|currency)+)/)?$',
+    url(
+        r"^dashboard/(?:(?P<status>(language|currency)+)/)?$",
         dashboard,
-        name='metasettings_dashboard'),
+        name="metasettings_dashboard",
+    )
 ]
