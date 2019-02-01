@@ -256,6 +256,7 @@ class CurrencyRateManager(models.Manager):
             if existing_rate.rate != rate:
                 existing_rate.rate = rate
                 existing_rate.save()
+
             return existing_rate, False
 
         except CurrencyRate.DoesNotExist:
@@ -276,7 +277,7 @@ class CurrencyRate(models.Model):
                                 verbose_name=_('Currency'))
 
     rate = models.DecimalField(verbose_name=_('Rate'),
-                               max_digits=7,
+                               max_digits=9,
                                decimal_places=2)
 
     month = models.PositiveIntegerField(null=True, blank=True)
