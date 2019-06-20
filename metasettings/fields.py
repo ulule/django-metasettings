@@ -12,13 +12,6 @@ class BaseDescriptor(object):
     def __init__(self, field):
         self.field = field
 
-    def __get__(self, instance=None, owner=None):
-        if instance is None:
-            raise AttributeError(
-                "The '%s' attribute can only be accessed from %s instances."
-                % (self.field.name, owner.__name__)
-            )
-
     def __set__(self, instance, value):
         if value is not None:
             value = force_text(value)
@@ -27,14 +20,12 @@ class BaseDescriptor(object):
 
 class CurrencyDescriptor(BaseDescriptor):
     def __get__(self, instance=None, owner=None):
-        super(CurrencyDescriptor, self).__get__(instance, owner)
-        return Currency(code=instance.__dict__[self.field.name])
+        return Currency(code=instance.__dict__[self.field.name]) if instance else self
 
 
 class TimezoneDescriptor(BaseDescriptor):
     def __get__(self, instance=None, owner=None):
-        super(TimezoneDescriptor, self).__get__(instance, owner)
-        return Timezone(code=instance.__dict__[self.field.name])
+        return Timezone(code=instance.__dict__[self.field.name]) if instance else self
 
 
 class BaseChoiceField(models.CharField):

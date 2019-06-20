@@ -5,6 +5,6 @@ install:
   - pip install tox
   - cd /opt/pyenv/plugins/python-build/../.. && git pull origin master && cd -
   - pyenv install 3.6.5
-  - pyenv global 2.7.14 3.6.5
+  - pyenv global 3.6.5
 script: tox
 
