@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.db.models.fields import BLANK_CHOICE_DASH
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str as force_text
 from django.utils.functional import lazy
 
 from .models import Currency, currencies, Timezone, timezones

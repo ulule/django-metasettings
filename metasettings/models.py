@@ -7,8 +7,8 @@ from collections import defaultdict, OrderedDict
 
 from django.utils import translation
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils.translation import gettext_lazy as _
+from django.utils.encoding import force_str as force_text
 from django.db import models
 
 from . import settings, exceptions
@@ -79,7 +79,6 @@ class Currencies(object):
 currencies = Currencies()
 
 
-@python_2_unicode_compatible
 class BaseObject(object):
     def __init__(self, code):
         self.code = code
@@ -289,7 +288,6 @@ class CurrencyRate(models.Model):
     objects = CurrencyRateManager()
 
 
-@python_2_unicode_compatible
 class Money(object):
     __hash__ = None
 
