@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.messages",
     "django.contrib.sessions",
     "django.contrib.sites",
     "metasettings",
@@ -37,14 +38,14 @@ GEOIP_PATH = os.path.join(os.path.dirname(__file__), "data")
 TIME_ZONE = "Europe/Paris"
 METASETTINGS_TIME_ZONE = TIME_ZONE
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-)
+]
 
 TEMPLATES = [
     {
