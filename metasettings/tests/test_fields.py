@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.forms import Select
 from django.forms.models import modelform_factory
 from django.test import TestCase
@@ -30,8 +30,8 @@ class FieldTests(TestCase):
 
     def test_text(self):
         project = Project(currency="EUR", timezone="Europe/Paris")
-        assert force_text(project.currency) == "EUR"
-        assert force_text(project.timezone) == "Europe/Paris"
+        assert force_str(project.currency) == "EUR"
+        assert force_str(project.timezone) == "Europe/Paris"
 
     def test_blank(self):
         project = Project.objects.create(name="thoas one")

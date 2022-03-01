@@ -8,7 +8,7 @@ from collections import defaultdict, OrderedDict
 from django.utils import translation
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from django.utils.encoding import force_str as force_text
+from django.utils.encoding import force_str as force_str
 from django.db import models
 
 from . import settings, exceptions
@@ -84,16 +84,16 @@ class BaseObject(object):
         self.code = code
 
     def __str__(self):
-        return force_text(self.code or "")
+        return force_str(self.code or "")
 
     def __eq__(self, other):
-        return force_text(self) == force_text(other or "")
+        return force_str(self) == force_str(other or "")
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(force_text(self))
+        return hash(force_str(self))
 
     def __repr__(self):
         repr_text = "{0}(code={1})"
@@ -101,7 +101,7 @@ class BaseObject(object):
         return repr_text.format(self.__class__.__name__, repr(self.code))
 
     def __unicode__(self):
-        return force_text(self.code or "")
+        return force_str(self.code or "")
 
     def __bool__(self):
         return bool(self.code)
@@ -110,12 +110,12 @@ class BaseObject(object):
         return self.code.upper()
 
     def encode(self, key):
-        return force_text(self.code or "").encode(key)
+        return force_str(self.code or "").encode(key)
 
     __nonzero__ = __bool__  # Python 2 compatibility.
 
     def __len__(self):
-        return len(force_text(self))
+        return len(force_str(self))
 
 
 class Currency(BaseObject):
@@ -305,7 +305,7 @@ class Money(object):
         return "{} {}".format(self.currency, self.amount)
 
     def __str__(self):
-        return force_text("{} {:,.2f}".format(self.currency, self.amount))
+        return force_str("{} {:,.2f}".format(self.currency, self.amount))
 
     def __lt__(self, other):
         if isinstance(other, Money):

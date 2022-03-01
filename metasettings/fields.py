@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.db.models.fields import BLANK_CHOICE_DASH
-from django.utils.encoding import force_str as force_text
+from django.utils.encoding import force_str as force_str
 from django.utils.functional import lazy
 
 from .models import Currency, currencies, Timezone, timezones
@@ -14,7 +14,7 @@ class BaseDescriptor(object):
 
     def __set__(self, instance, value):
         if value is not None:
-            value = force_text(value)
+            value = force_str(value)
         instance.__dict__[self.field.name] = value
 
 
@@ -57,7 +57,7 @@ class BaseChoiceField(models.CharField):
         # Convert the Currency to unicode for database insertion.
         if value is None or getattr(value, "code", "") is None:
             return None
-        return force_text(value)
+        return force_str(value)
 
     def get_prep_lookup(self, lookup_type, value):
         if hasattr(value, "code"):
