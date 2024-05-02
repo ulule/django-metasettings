@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.db import models
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.utils.encoding import force_str as force_str
@@ -89,14 +87,6 @@ class CurrencyField(BaseChoiceField):
         return name, path, args, kwargs
 
 
-try:  # pragma: no cover
-    from south.modelsinspector import add_introspection_rules
-
-    add_introspection_rules([], ["^metasettings\.fields\.CurrencyField"])
-except ImportError:
-    pass
-
-
 class TimezoneField(BaseChoiceField):
     descriptor_class = TimezoneDescriptor
 
@@ -114,11 +104,3 @@ class TimezoneField(BaseChoiceField):
             del kwargs["max_length"]
 
         return name, path, args, kwargs
-
-
-try:  # pragma: no cover
-    from south.modelsinspector import add_introspection_rules
-
-    add_introspection_rules([], ["^metasettings\.fields\.TimezoneField"])
-except ImportError:
-    pass
