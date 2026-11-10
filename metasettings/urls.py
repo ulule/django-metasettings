@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import url  # type: ignore[attr-defined]
 
 from .views import dashboard
 

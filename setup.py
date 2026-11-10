@@ -18,6 +18,7 @@ setup(
     author_email='florent.messa@gmail.com',
     url='http://github.com/thoas/django-metasettings',
     packages=find_packages(),
+    package_data={'metasettings': ['py.typed']},
     install_requires=[
     ],
     zip_safe=False,

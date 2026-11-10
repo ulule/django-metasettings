@@ -1,7 +1,16 @@
+from __future__ import annotations
+
+from typing import Any
+
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseRedirect,
+)
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.http.response import HttpResponseBase
 from django.views.generic.base import View
 
 from . import signals
@@ -13,7 +22,7 @@ class MetasettingsDashboard(View):
     http_method_names = ("post",)
     template_name = "metasettings/dashboard.html"
 
-    parameters = {
+    parameters: dict[str, dict[str, Any]] = {
         "currency_code": {
             "choices": dict(CURRENCY_CHOICES),
             "cookie_name": CURRENCY_COOKIE_NAME,
@@ -26,7 +35,7 @@ class MetasettingsDashboard(View):
         },
     }
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         self.metasetting_keys = [
             key for key in self.parameters if key in self.request.POST
         ]
@@ -36,9 +45,11 @@ class MetasettingsDashboard(View):
             and "redirect_url" in self.request.POST
             and "submit" in self.request.POST
         ):
-            response = HttpResponseRedirect(self.request.POST.get("redirect_url"))
+            response: HttpResponse = HttpResponseRedirect(
+                self.request.POST.get("redirect_url")  # type: ignore[arg-type]
+            )
 
-            cookies = {}
+            cookies: dict[str, str] = {}
 
             for metasetting_key in self.metasetting_keys:
                 code = self.request.POST.get(metasetting_key)
@@ -62,7 +73,8 @@ class MetasettingsDashboard(View):
                                 response = result
                                 break
 
-                    cookies[key_params["cookie_name"]] = code
+                    # code is a key of the choices, hence a str
+                    cookies[key_params["cookie_name"]] = code  # type: ignore[assignment]
 
             self.set_response_cookies(response, cookies)
 
@@ -71,7 +83,7 @@ class MetasettingsDashboard(View):
         else:
             return self.get(request, *args, **kwargs)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         return render(
             request,
             self.template_name,
@@ -84,7 +96,9 @@ class MetasettingsDashboard(View):
             },
         )
 
-    def set_response_cookies(self, response, cookies):
+    def set_response_cookies(
+        self, response: HttpResponse, cookies: dict[str, str]
+    ) -> None:
         cookie_domain = settings.SESSION_COOKIE_DOMAIN
 
         if cookie_domain and cookie_domain.startswith("."):
@@ -96,7 +110,9 @@ class MetasettingsDashboard(View):
             set_cookie(response, k, v, cookie_domain=cookie_domain)
 
     @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(
+        self, request: HttpRequest, *args: Any, **kwargs: Any
+    ) -> HttpResponseBase:
         return super(MetasettingsDashboard, self).dispatch(request, *args, **kwargs)
 
 

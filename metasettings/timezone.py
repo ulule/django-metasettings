@@ -15,9 +15,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 """
+from __future__ import annotations
+
+from typing import Dict, Optional, Union
 
 
-def time_zone_by_country_and_region(country_code, region_code=None):
+def time_zone_by_country_and_region(
+    country_code: str, region_code: str | None = None
+) -> str | None:
     """
     Returns time zone from country and region code.
 
@@ -34,7 +39,7 @@ def time_zone_by_country_and_region(country_code, region_code=None):
     return timezone.get(region_code)
 
 
-country_dict = {
+country_dict: Dict[str, Union[str, Dict[Optional[str], str]]] = {
     "AD": "Europe/Andorra",
     "AE": "Asia/Dubai",
     "AF": "Asia/Kabul",
