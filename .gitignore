@@ -6,3 +6,4 @@ django_metasettings.egg-info/
 .python-version
 .coverage
 local_settings.py
+.mypy_cache/

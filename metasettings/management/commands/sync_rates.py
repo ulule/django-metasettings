@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from argparse import ArgumentParser
 from datetime import date, datetime
+from typing import Any
+
 from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
@@ -8,7 +13,7 @@ from metasettings.openexchangerates import sync_rates
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
             "--app_id", dest="app_id", default=None, help="The openexchangerates APP ID"
         ),
@@ -27,7 +32,7 @@ class Command(BaseCommand):
             help="The date end to import currency rates",
         ),
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         app_id = options.get(
             "app_id", getattr(settings, "OPENEXCHANGERATES_APP_ID", None)
         )
@@ -42,12 +47,12 @@ class Command(BaseCommand):
             return sync_rates(app_id)
 
         if start:
-            start = datetime.strptime(options.get("date_start"), "%Y-%m-%d").date()
+            start = datetime.strptime(start, "%Y-%m-%d").date()
         else:
             start = date.today()
 
         if end:
-            end = datetime.strptime(options.get("date_end"), "%Y-%m-%d").date()
+            end = datetime.strptime(end, "%Y-%m-%d").date()
         else:
             end = date.today()
 

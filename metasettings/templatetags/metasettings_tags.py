@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import re
+from typing import Any, Callable, Literal
 
 from django import template
+from django.http import HttpRequest
 from django.template import TemplateSyntaxError
 
 from metasettings.models import (
@@ -17,12 +21,14 @@ kwarg_re = re.compile(r"(?:(\w+)=)?(.+)")
 
 
 class Node(template.Node):
-    def __init__(self, request, func, var_name):
+    def __init__(
+        self, request: str, func: Callable[[HttpRequest], Any], var_name: str | None
+    ) -> None:
         self.request = template.Variable(request)
         self.var_name = var_name
         self.func = func
 
-    def render(self, context):
+    def render(self, context: template.Context) -> Any:
         try:
             request = self.request.resolve(context)
         except template.VariableDoesNotExist:
@@ -38,7 +44,7 @@ class Node(template.Node):
 
 
 @register.tag
-def get_currency_from_request(parser, token):
+def get_currency_from_request(parser: template.base.Parser, token: template.base.Token) -> Node:
     try:
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
@@ -57,7 +63,7 @@ def get_currency_from_request(parser, token):
 
 
 @register.tag
-def get_language_from_request(parser, token):
+def get_language_from_request(parser: template.base.Parser, token: template.base.Token) -> Node:
     try:
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
@@ -76,7 +82,7 @@ def get_language_from_request(parser, token):
 
 
 @register.tag
-def get_timezone_from_request(parser, token):
+def get_timezone_from_request(parser: template.base.Parser, token: template.base.Token) -> Node:
     try:
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
@@ -96,10 +102,13 @@ def get_timezone_from_request(parser, token):
 
 class ConvertAmountNode(template.Node):
     @classmethod
-    def parse_params(cls, parser, bits):
-        args, kwargs = [], {}
+    def parse_params(
+        cls, parser: template.base.Parser, bits: list[str]
+    ) -> tuple[list[template.base.FilterExpression], dict[str, Any]]:
+        args: list[template.base.FilterExpression] = []
+        kwargs: dict[str, Any] = {}
         for bit in bits:
-            name, value = kwarg_re.match(bit).groups()
+            name, value = kwarg_re.match(bit).groups()  # type: ignore[union-attr]
             if name:
                 kwargs[name] = parser.compile_filter(value)
             else:
@@ -107,7 +116,9 @@ class ConvertAmountNode(template.Node):
         return args, kwargs
 
     @classmethod
-    def handle_token(cls, parser, token):
+    def handle_token(
+        cls, parser: template.base.Parser, token: template.base.Token
+    ) -> ConvertAmountNode:
         bits = token.split_contents()
         name = bits[0]
 
@@ -131,23 +142,30 @@ class ConvertAmountNode(template.Node):
 
         cls_kwargs["asvar"] = asvar
 
-        return cls(*cls_args, **cls_kwargs)
+        return cls(*cls_args, **cls_kwargs)  # type: ignore[arg-type]
 
-    def __init__(self, from_currency, to_currency, amount, ceil=False, asvar=None):
+    def __init__(
+        self,
+        from_currency: template.base.FilterExpression,
+        to_currency: template.base.FilterExpression,
+        amount: template.base.FilterExpression,
+        ceil: template.base.FilterExpression | Literal[False] = False,
+        asvar: str | None = None,
+    ) -> None:
         self.from_currency = from_currency
         self.to_currency = to_currency
         self.amount = amount
         self.ceil = ceil
         self.asvar = asvar
 
-    def render(self, context):
+    def render(self, context: template.Context) -> Any:
         from_currency = self.from_currency.resolve(context)
 
         to_currency = self.to_currency.resolve(context)
 
         amount = self.amount.resolve(context)
 
-        ceil = self.ceil and self.ceil.resolve(context) or self.ceil
+        ceil: Any = self.ceil and self.ceil.resolve(context) or self.ceil
 
         amount = _convert_amount(from_currency, to_currency, amount, ceil=ceil)
 
@@ -159,5 +177,7 @@ class ConvertAmountNode(template.Node):
 
 
 @register.tag
-def convert_amount(parser, token):
+def convert_amount(
+    parser: template.base.Parser, token: template.base.Token
+) -> ConvertAmountNode:
     return ConvertAmountNode.handle_token(parser, token)

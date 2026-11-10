@@ -3,3 +3,8 @@ coverage
 python-dateutil
 mock
 pytz
+mypy==2.4.1
+django-stubs==6.1.2
+types-requests
+types-pytz
+types-python-dateutil
